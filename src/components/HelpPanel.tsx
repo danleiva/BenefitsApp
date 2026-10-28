@@ -1,4 +1,5 @@
 import { stateByCode } from '../data/states';
+import { isSurvivor } from '../engine/rules';
 import type { Profile } from '../types';
 
 export function HelpPanel({ profile }: { profile: Profile }) {
@@ -8,6 +9,13 @@ export function HelpPanel({ profile }: { profile: Profile }) {
     <aside className="help-panel" aria-labelledby="help-title">
       <h2 id="help-title">Get free help</h2>
       <ul className="help-list">
+        {isSurvivor(profile) && (
+          <li>
+            <strong>TAPS survivor helpline (24/7)</strong>
+            <span>Free grief support and help navigating survivor benefits.</span>
+            <a href="tel:18009598277">1-800-959-8277</a>
+          </li>
+        )}
         <li>
           <strong>Free claims help</strong>
           <span>Accredited Veterans Service Officers (VSOs) help you file for free.</span>

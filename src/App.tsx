@@ -1,21 +1,34 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PrintReport } from './components/PrintReport';
 import { Results } from './components/Results';
 import { Wizard } from './components/Wizard';
 import { emptyProfile } from './data/options';
 import { matchBenefits } from './engine/match';
+import { clearSession, hasAnswers, loadSession, saveSession, type Stage } from './storage';
 import type { Profile } from './types';
 
-type Stage = 'welcome' | 'wizard' | 'results';
-
 export default function App() {
-  const [stage, setStage] = useState<Stage>('welcome');
-  const [profile, setProfile] = useState<Profile>(emptyProfile);
+  // Restore saved answers once, on first render.
+  const [saved] = useState(loadSession);
+  const [stage, setStage] = useState<Stage>(saved && hasAnswers(saved.profile) ? saved.stage : 'welcome');
+  const [step, setStep] = useState(saved?.step ?? 0);
+  const [profile, setProfile] = useState<Profile>(saved?.profile ?? emptyProfile());
   const matches = useMemo(() => (stage === 'results' ? matchBenefits(profile) : []), [stage, profile]);
+
+  useEffect(() => {
+    if (hasAnswers(profile)) saveSession({ stage, step, profile });
+  }, [stage, step, profile]);
 
   const go = (s: Stage) => {
     setStage(s);
     window.scrollTo({ top: 0 });
+  };
+
+  const startOver = () => {
+    clearSession();
+    setProfile(emptyProfile());
+    setStep(0);
+    go('welcome');
   };
 
   return (
@@ -43,7 +56,14 @@ export default function App() {
             </span>
           </button>
           {stage === 'results' && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => go('wizard')}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setStep(0);
+                go('wizard');
+              }}
+            >
               Edit answers
             </button>
           )}
@@ -51,19 +71,33 @@ export default function App() {
       </header>
 
       <main className="container" id="main">
-        {stage === 'welcome' && <Welcome onStart={() => go('wizard')} />}
+        {stage === 'welcome' && (
+          <Welcome
+            resumable={hasAnswers(profile)}
+            onStart={() => go('wizard')}
+            onResults={() => go('results')}
+            onStartOver={startOver}
+          />
+        )}
         {stage === 'wizard' && (
-          <Wizard profile={profile} onChange={setProfile} onFinish={() => go('results')} onCancel={() => go('welcome')} />
+          <Wizard
+            profile={profile}
+            onChange={setProfile}
+            step={step}
+            onStepChange={setStep}
+            onFinish={() => go('results')}
+            onCancel={() => go('welcome')}
+          />
         )}
         {stage === 'results' && (
           <Results
             profile={profile}
             matches={matches}
-            onEdit={() => go('wizard')}
-            onRestart={() => {
-              setProfile(emptyProfile());
-              go('welcome');
+            onEdit={() => {
+              setStep(0);
+              go('wizard');
             }}
+            onRestart={startOver}
           />
         )}
       </main>
@@ -77,27 +111,64 @@ export default function App() {
             Veterans Affairs, the Department of Defense, or any state government. Results are estimates based on your answers — always
             confirm eligibility with the official agency. Benefit information last reviewed October 2026.
           </p>
-          <p>Your answers stay in your browser and are never sent or stored anywhere.</p>
+          <p>
+            Your answers are saved only in this browser on this device, so you can come back later. They are never sent to a server.
+            {hasAnswers(profile) && (
+              <>
+                {' '}
+                <button type="button" className="btn-link inline" onClick={startOver}>
+                  Erase my saved answers
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </footer>
     </>
   );
 }
 
-function Welcome({ onStart }: { onStart: () => void }) {
+interface WelcomeProps {
+  resumable: boolean;
+  onStart: () => void;
+  onResults: () => void;
+  onStartOver: () => void;
+}
+
+function Welcome({ resumable, onStart, onResults, onStartOver }: WelcomeProps) {
   return (
     <div className="welcome">
+      {resumable && (
+        <section className="resume card" aria-labelledby="resume-title">
+          <div>
+            <h2 id="resume-title">Welcome back</h2>
+            <p>Your answers from last time are saved on this device.</p>
+          </div>
+          <div className="resume-actions">
+            <button type="button" className="btn btn-primary" onClick={onResults}>
+              View my benefits
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={onStart}>
+              Review answers
+            </button>
+            <button type="button" className="btn-link" onClick={onStartOver}>
+              Start over
+            </button>
+          </div>
+        </section>
+      )}
       <section className="hero">
         <p className="eyebrow">Free · Private · About 5 minutes</p>
         <h1>Find every benefit you’ve earned.</h1>
         <p className="lead">
           Answer a few questions about your service, disability rating, family, and where you live. We’ll match you with federal VA
           and DoD programs plus benefits from your state — with plain-language explanations and step-by-step instructions to apply.
+          Surviving spouses can use it too.
         </p>
         <button type="button" className="btn btn-primary btn-lg" onClick={onStart}>
           Get started →
         </button>
-        <p className="hero-note">No account, no sign-up. Your answers never leave your device.</p>
+        <p className="hero-note">No account, no sign-up. Your answers are saved privately on this device and never leave it.</p>
       </section>
 
       <section className="how" aria-labelledby="how-title">
@@ -132,7 +203,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
           <li>VA home loans &amp; housing grants</li>
           <li>Federal hiring preference &amp; job help</li>
           <li>Pension, CRSC/CRDP &amp; insurance</li>
-          <li>Family &amp; dependent benefits</li>
+          <li>Family, dependent &amp; survivor benefits (DIC)</li>
           <li>Benefits in all 50 states + DC</li>
         </ul>
       </section>

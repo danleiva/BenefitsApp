@@ -28,6 +28,8 @@ export interface Criteria {
   purpleHeart?: boolean;
   combat?: boolean;
   lowIncome?: boolean;
+  /** Also available to unremarried surviving spouses (veteran's rating/death must meet the other criteria). */
+  survivor?: boolean;
 }
 
 export interface StateBenefitSpec {

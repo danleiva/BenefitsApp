@@ -24,6 +24,9 @@ export const emptyProfile = (): Profile => ({
   unratedConditions: false,
   severeDisability: false,
   needsDailyCare: false,
+  deathCause: '',
+  remarriage: 'no',
+  veteranWasRetiree: false,
   marital: '',
   kidsUnder18: 0,
   kidsInSchool: 0,
@@ -45,6 +48,25 @@ export const STATUS_OPTIONS: Option<Exclude<Profile['status'], ''>>[] = [
   { value: 'veteran', label: 'Veteran', hint: 'Separated from service' },
   { value: 'retired', label: 'Military retiree', hint: '20+ years or Reserve retirement' },
   { value: 'medically_retired', label: 'Medically retired', hint: 'Retired for disability (TDRL/PDRL)' },
+  { value: 'surviving_spouse', label: 'Surviving spouse', hint: 'Of a service member or veteran who has died' },
+];
+
+export const DEATH_CAUSE_OPTIONS: Option<Exclude<Profile['deathCause'], ''>>[] = [
+  { value: 'in_service', label: 'Died on active duty or in the line of duty', hint: 'Including Guard/Reserve on orders or training' },
+  {
+    value: 'service_connected',
+    label: 'Died from a condition related to service',
+    hint: 'Including PACT Act presumptive conditions (e.g., cancers linked to burn pits or Agent Orange)',
+  },
+  { value: 'rated_total', label: 'Was rated 100% or TDIU, but the cause of death was not service-related' },
+  { value: 'other', label: 'Died of a cause not related to service' },
+  { value: 'unknown', label: 'Not sure' },
+];
+
+export const REMARRIAGE_OPTIONS: Option<Profile['remarriage']>[] = [
+  { value: 'no', label: 'No, I have not remarried', hint: 'Or a later marriage has ended' },
+  { value: 'after55', label: 'Yes, at age 55 or older' },
+  { value: 'before55', label: 'Yes, before age 55' },
 ];
 
 export const BRANCH_OPTIONS: Option<Exclude<Profile['branch'], ''>>[] = [

@@ -19,6 +19,11 @@ import {
   ratingAtLeast,
   ratingText,
   recentlySeparated,
+  deathUnclear,
+  familyBenefitDeath,
+  isSurvivor,
+  keepsSurvivorBenefits,
+  serviceConnectedDeath,
   totallyDisabled,
   uncertainDischarge,
   wartime,
@@ -68,7 +73,7 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 100,
     match: (p) => {
-      if (isActive(p)) return null; // active duty sees BDD instead
+      if (isActive(p) || isSurvivor(p)) return null; // active duty sees BDD; survivors see DIC
       if (barredDischarge(p)) return null;
       if (hasRating(p)) {
         const r = likely(`You have a ${ratingText(p)}.`);
@@ -162,7 +167,7 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 90,
     match: (p) => {
-      if (barredDischarge(p)) return null;
+      if (barredDischarge(p) || isSurvivor(p)) return null; // survivors see PACT Act guidance on the DIC card
       if (p.exposures.length)
         return withDischargeCaveat(p, likely('You reported a possible toxic exposure during service.'));
       if (p.eras.includes('post911') || p.eras.includes('gulf_war') || p.eras.includes('vietnam'))
@@ -333,7 +338,7 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 96,
     match: (p) => {
-      if (isActive(p) || barredDischarge(p)) return null;
+      if (isActive(p) || isSurvivor(p) || barredDischarge(p)) return null;
       const reasons: string[] = [];
       if (hasRating(p)) reasons.push(`Your ${ratingText(p)} gives you higher priority — care for rated conditions is free.`);
       if (p.combat) reasons.push('Combat veterans receive enhanced eligibility after discharge.');
@@ -373,6 +378,7 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 70,
     match: (p) => {
+      if (isSurvivor(p)) return null; // survivors see the grief-support card
       if (p.combat || p.exposures.length) return likely('Combat and deployed service members and veterans qualify for Vet Center counseling.');
       if (isVeteran(p) || isGuardReserve(p)) return possible('Free confidential counseling is available to many veterans and their families.');
       return null;
@@ -416,6 +422,7 @@ export const federalBenefits: Benefit[] = [
     ],
     eligibility: [
       'Active duty and activated Guard/Reserve and families.',
+      'Surviving spouses (until remarriage) and children of service members who died on active duty or of military retirees.',
       'Military retirees (including medical retirees) and families.',
       'Selected Reserve members not on orders and not eligible for FEHB (TRICARE Reserve Select).',
     ],
@@ -433,6 +440,12 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 88,
     match: (p) => {
+      if (isSurvivor(p)) {
+        if (p.remarriage !== 'no') return hasKids(p) ? possible('Your children may keep TRICARE even after you remarry.') : null;
+        if (p.deathCause === 'in_service') return likely('Surviving spouses of service members who died on active duty keep TRICARE (active-duty family rates for 3 years).');
+        if (p.veteranWasRetiree) return likely('Unremarried surviving spouses of military retirees keep TRICARE eligibility.');
+        return null;
+      }
       if (isActive(p)) return likely('Active-duty service members and families are covered by TRICARE.');
       if (isGuardReserve(p)) return likely('Selected Reserve members can buy TRICARE Reserve Select when not on orders.');
       if (isRetiree(p))
@@ -460,6 +473,14 @@ export const federalBenefits: Benefit[] = [
     links: [{ label: 'CHAMPVA', url: 'https://www.va.gov/family-and-caregiver-benefits/health-and-disability/champva/' }],
     priority: 82,
     match: (p) => {
+      if (isSurvivor(p)) {
+        if (!keepsSurvivorBenefits(p)) return null;
+        if (p.veteranWasRetiree || p.deathCause === 'in_service')
+          return familyBenefitDeath(p) ? possible('You may use TRICARE instead; CHAMPVA applies only if you are not TRICARE-eligible.') : null;
+        if (familyBenefitDeath(p)) return likely('Surviving spouses of veterans who died from a service-connected condition or were rated P&T qualify.');
+        if (deathUnclear(p)) return possible('Qualifies if the death was service-connected or the veteran was rated permanent and total.');
+        return null;
+      }
       if (!hasDependents(p) || !totallyDisabled(p)) return null;
       if (isRetiree(p)) return possible('Your family likely uses TRICARE as retirees, but CHAMPVA applies if they lose TRICARE eligibility.');
       if (p.permanentAndTotal) return likely('Your family qualifies because you are rated permanent and total (P&T).');
@@ -542,7 +563,7 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 92,
     match: (p) => {
-      if (!p.eras.includes('post911')) return null;
+      if (!p.eras.includes('post911') || isSurvivor(p)) return null; // survivors see the Fry Scholarship
       if (p.serviceLength === 'lt_90d' && !p.purpleHeart) return null;
       const reason = p.wantsEducation ? 'You served after 9/11 and are interested in school or training.' : 'You served on active duty after 9/11.';
       if (isVeteran(p) && !isRetiree(p) && p.discharge !== 'honorable')
@@ -658,6 +679,11 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 80,
     match: (p) => {
+      if (isSurvivor(p)) {
+        if (familyBenefitDeath(p)) return likely('Surviving spouses and children of veterans who died from service or were rated P&T can use DEA.');
+        if (deathUnclear(p)) return possible('Available if the death is service-connected or the veteran was rated permanent and total.');
+        return null;
+      }
       if (!hasDependents(p) || !totallyDisabled(p)) return null;
       if (p.permanentAndTotal) return likely('Your spouse and children may use DEA because you are rated permanent and total.');
       return possible('If VA rates your disability permanent and total (P&T), your spouse and children can use DEA.');
@@ -829,7 +855,17 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 78,
     match: (p) => {
-      if (barredDischarge(p) || p.serviceLength === 'lt_90d') return null;
+      if (barredDischarge(p)) return null;
+      if (isSurvivor(p)) {
+        if (!serviceConnectedDeath(p)) return null;
+        if (p.remarriage === 'before55') return possible('Remarriage before age 57 generally ends home loan eligibility, unless that marriage has ended.');
+        const reason =
+          p.remarriage === 'after55'
+            ? 'Surviving spouses who remarry at 57 or older keep eligibility (55–56 does not).'
+            : 'Unremarried surviving spouses of service members and veterans who died in service or from a service-connected condition qualify — with no funding fee.';
+        return p.housing === 'buying' || p.housing === 'rent' ? likely(reason) : possible(reason);
+      }
+      if (p.serviceLength === 'lt_90d') return null;
       const reasons: string[] = [];
       if (p.housing === 'buying') reasons.push('You are looking to buy a home.');
       if (p.housing === 'rent' || p.housing === 'with_family') reasons.push('You currently rent — a VA loan can make buying possible with $0 down.');
@@ -892,6 +928,7 @@ export const federalBenefits: Benefit[] = [
     links: [{ label: 'VA homeless programs', url: 'https://www.va.gov/homeless/' }],
     priority: 110,
     match: (p) => {
+      if (isSurvivor(p)) return null;
       if (p.housing === 'homeless') return likely('You told us you are currently without stable housing — please call 877-424-3838 today.');
       if (p.housing === 'at_risk') return likely('You told us you are at risk of losing your housing.');
       return null;
@@ -1156,6 +1193,7 @@ export const federalBenefits: Benefit[] = [
     eligibility: [
       'Active duty, Guard/Reserve, retirees, and Medal of Honor recipients (DoD ID card).',
       'Veterans with any service-connected rating, Purple Heart recipients, and former POWs (use your VHIC).',
+      'Unremarried surviving spouses of service members who died on active duty, retirees, and 100% disabled veterans (DoD ID card).',
       'All honorably discharged veterans for online exchange shopping.',
     ],
     howToApply: [
@@ -1168,6 +1206,11 @@ export const federalBenefits: Benefit[] = [
     ],
     priority: 50,
     match: (p) => {
+      if (isSurvivor(p)) {
+        if (p.remarriage === 'no' && (p.deathCause === 'in_service' || p.veteranWasRetiree || p.deathCause === 'rated_total'))
+          return likely('Unremarried surviving spouses of service members, retirees, and 100% disabled veterans can keep a DoD ID card.');
+        return null;
+      }
       if (isServing(p) || isRetiree(p)) return likely('Your military or retiree ID gives you full access.');
       if (hasRating(p) || p.purpleHeart) return likely('Veterans with a service-connected rating or Purple Heart qualify for in-person access.');
       if (isVeteran(p) && p.discharge === 'honorable') return possible('Honorably discharged veterans can shop the online exchanges.');
@@ -1200,11 +1243,14 @@ export const federalBenefits: Benefit[] = [
     agency: 'National Park Service / Interior',
     summary: 'Free lifetime America the Beautiful pass for veterans; free annual pass for current service members.',
     whatYouGet: ['Free entry to national parks, wildlife refuges, and 2,000+ federal recreation sites.'],
-    eligibility: ['Veterans (with proof of service) and Gold Star families: free lifetime pass.', 'Current service members and dependents: free annual Military Pass.'],
+    eligibility: ['Veterans (with proof of service) and Gold Star families (next of kin of members who died in the line of duty): free lifetime pass.', 'Current service members and dependents: free annual Military Pass.'],
     howToApply: ['Show your VHIC, Veteran ID Card, veteran designation on your driver\'s license, or DD-214 at any federal recreation site.'],
     links: [{ label: 'Free access for veterans', url: 'https://www.nps.gov/planyourvisit/veterans-and-gold-star-families-free-access.htm' }],
     priority: 25,
-    match: (p) => (isServing(p) || isVeteran(p) ? likely('Available to all service members and veterans.') : null),
+    match: (p) => {
+      if (isSurvivor(p)) return p.deathCause === 'in_service' ? likely('Gold Star families receive a free lifetime pass.') : null;
+      return isServing(p) || isVeteran(p) ? likely('Available to all service members and veterans.') : null;
+    },
   },
   {
     id: 'veteran-id',

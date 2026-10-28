@@ -1,10 +1,14 @@
 import { federalBenefits } from '../data/federal';
 import { stateByCode } from '../data/states';
+import { survivorBenefits } from '../data/survivors';
 import type { Criteria, StateBenefitSpec, StateInfo } from '../data/stateTypes';
 import type { Benefit, Category, MatchedBenefit, MatchResult, Profile } from '../types';
 import {
   barredDischarge,
+  deathUnclear,
+  familyBenefitDeath,
   hasDependents,
+  isSurvivor,
   isRetiree,
   isServing,
   isVeteran,
@@ -18,6 +22,7 @@ import {
 /** Evaluate declarative state criteria. Hard requirements return null; soft unknowns downgrade to "possible". */
 export function evaluateCriteria(p: Profile, c: Criteria): MatchResult | null {
   if (barredDischarge(p)) return null;
+  if (isSurvivor(p)) return evaluateSurvivorCriteria(p, c);
   const reasons: string[] = [];
   let soft = false;
 
@@ -74,6 +79,38 @@ export function evaluateCriteria(p: Profile, c: Criteria): MatchResult | null {
   return withDischargeCaveat(p, result);
 }
 
+/**
+ * Surviving spouses qualify for state programs aimed at a veteran's dependents, and for programs
+ * (mostly property tax relief) that the state extends to unremarried surviving spouses. State rules
+ * vary widely, so these are always "possible" matches.
+ */
+function evaluateSurvivorCriteria(p: Profile, c: Criteria): MatchResult | null {
+  if (!c.dependents && !c.survivor) return null;
+  if (c.serving || c.guard || c.combat || c.purpleHeart) return null;
+  const ratingRule = c.minRating !== undefined || c.total || c.pt;
+  if (ratingRule && !familyBenefitDeath(p) && !deathUnclear(p)) return null;
+
+  const reasons: string[] = [];
+  if (c.survivor) {
+    if (p.remarriage !== 'no') return null;
+    reasons.push('This state extends the benefit to unremarried surviving spouses.');
+  } else {
+    reasons.push('Programs for a veteran’s dependents often include surviving spouses and children.');
+  }
+  if (c.homeowner) {
+    if (p.housing !== 'own' && p.housing !== 'buying' && p.housing !== '') return null;
+    if (p.housing === 'own') reasons.push('You own your home.');
+  }
+  if (c.wartime && p.eras.length > 0 && !wartime(p)) return null;
+  if (ratingRule)
+    reasons.push(
+      familyBenefitDeath(p)
+        ? 'Eligibility depends on your spouse’s rating or a service-connected death.'
+        : 'Depends on your spouse’s VA rating or whether the death was service-connected.',
+    );
+  return withDischargeCaveat(p, { strength: 'possible', reasons });
+}
+
 const stateAgencyLink = (s: StateInfo) => ({ label: s.agency, url: s.url });
 
 function specToBenefit(s: StateInfo, spec: StateBenefitSpec): Benefit {
@@ -120,7 +157,7 @@ function genericStateBenefits(s: StateInfo): Benefit[] {
         s.retirementTax.note,
         'VA disability compensation is tax-free at both the federal and state level in every state.',
       ],
-      eligibility: ['Military retirees (and survivors receiving SBP) who are residents of this state.'],
+      eligibility: ['Military retirees, and in many states survivors receiving SBP annuities, who are residents of this state.'],
       howToApply: [
         'Claim the exemption or subtraction on your state income tax return.',
         'Use your 1099-R from DFAS (available on myPay).',
@@ -131,6 +168,8 @@ function genericStateBenefits(s: StateInfo): Benefit[] {
       match: (p) => {
         if (isRetiree(p)) return { strength: 'likely', reasons: ['You receive (or will receive) military retired pay.'] };
         if (isServing(p) && p.separatingSoon) return { strength: 'possible', reasons: ['Useful when deciding where to live in retirement.'] };
+        if (isSurvivor(p) && (p.veteranWasRetiree || p.deathCause === 'in_service'))
+          return { strength: 'possible', reasons: ['Many states tax Survivor Benefit Plan (SBP) annuities the same way as military retired pay.'] };
         return null;
       },
     },
@@ -150,6 +189,28 @@ function genericStateBenefits(s: StateInfo): Benefit[] {
       links: [stateAgencyLink(s), { label: 'Find a VA-accredited representative', url: 'https://www.va.gov/get-help-from-accredited-representative/find-rep/' }],
       priority: 68,
       match: () => ({ strength: 'likely', reasons: [`You live in ${s.name}.`] }),
+    },
+    {
+      id: `${s.code.toLowerCase()}-survivors`,
+      name: `${s.name} Benefits for Surviving Spouses`,
+      category: 'family',
+      level: 'state',
+      agency,
+      summary: `Many states, including ${s.name}, extend property tax relief, tuition waivers, license and fee discounts, and burial in state veterans cemeteries to surviving spouses and children.`,
+      whatYouGet: [
+        'Continued property tax relief in many states if you do not remarry.',
+        'State tuition programs for children (and sometimes spouses) of veterans who died from service.',
+        'Free help applying for federal survivor benefits (DIC, pension, CHAMPVA) from state and county veterans service officers.',
+      ],
+      eligibility: ['Usually requires that you have not remarried and that the veteran was a state resident; many programs require a service-connected death or a 100% rating.'],
+      howToApply: [
+        `Contact the ${s.agency} or your county veterans service officer and ask specifically about surviving spouse benefits.`,
+        "Bring the death certificate, marriage certificate, and the veteran's DD-214 and VA letters.",
+      ],
+      documents: ["Veteran's death certificate", 'Marriage certificate', "Veteran's DD-214", 'VA rating or DIC award letter'],
+      links: [stateAgencyLink(s)],
+      priority: 67,
+      match: (p) => (isSurvivor(p) ? { strength: 'possible', reasons: [`You are a surviving spouse living in ${s.name}.`] } : null),
     },
     {
       id: `${s.code.toLowerCase()}-license`,
@@ -189,7 +250,7 @@ export function stateBenefits(code: string): Benefit[] {
 }
 
 export function allBenefitsFor(p: Profile): Benefit[] {
-  return [...federalBenefits, ...stateBenefits(p.state)];
+  return [...federalBenefits, ...survivorBenefits, ...stateBenefits(p.state)];
 }
 
 export function matchBenefits(p: Profile): MatchedBenefit[] {

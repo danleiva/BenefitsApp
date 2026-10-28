@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CATEGORY_LABELS, CATEGORY_ORDER, topActions } from '../engine/match';
-import { estimatedCompensation } from '../engine/rules';
+import { estimatedCompensation, estimatedDic } from '../engine/rules';
 import type { Category, MatchedBenefit, Profile } from '../types';
 import { BenefitCard } from './BenefitCard';
 import { BenefitDetail } from './BenefitDetail';
@@ -28,6 +28,7 @@ export function Results({ profile, matches, onEdit, onRestart }: Props) {
   const likelyCount = matches.filter((m) => m.result.strength === 'likely').length;
   const stateCount = matches.filter((m) => m.benefit.level === 'state').length;
   const comp = estimatedCompensation(profile);
+  const dic = estimatedDic(profile);
   const top = topActions(matches);
 
   const filtered = useMemo(() => {
@@ -83,6 +84,15 @@ export function Results({ profile, matches, onEdit, onRestart }: Props) {
             <dt>State benefits</dt>
             <dd>{stateCount}</dd>
           </div>
+          {dic !== null && (
+            <div>
+              <dt>Est. DIC payment</dt>
+              <dd>
+                {money(dic)}
+                <small>/mo</small>
+              </dd>
+            </div>
+          )}
           {comp !== null && comp > 0 && (
             <div>
               <dt>Est. VA compensation</dt>
@@ -98,6 +108,12 @@ export function Results({ profile, matches, onEdit, onRestart }: Props) {
       {comp !== null && comp > 0 && (
         <p className="footnote">
           Compensation estimate uses 2026 VA rates for a veteran with no dependents. Veterans rated 30%+ receive more for a spouse and children.
+        </p>
+      )}
+
+      {dic !== null && (
+        <p className="footnote">
+          DIC estimate uses the 2026 base rate ($1,699.36) plus $421 per child under 18. It may be higher with the 8-year provision or Aid &amp; Attendance.
         </p>
       )}
 

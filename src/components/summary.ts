@@ -6,12 +6,22 @@ import {
   STATE_OPTIONS,
   STATUS_OPTIONS,
 } from '../data/options';
-import { ratingText } from '../engine/rules';
+import { isSurvivor, ratingText } from '../engine/rules';
 import type { Profile } from '../types';
 
 /** Short human-readable facts about the profile, for chips and the printed report. */
 export function profileFacts(p: Profile): string[] {
   const kids = p.kidsUnder18 + p.kidsInSchool;
+  if (isSurvivor(p))
+    return [
+      'Surviving spouse',
+      p.branch ? `${labelFor(BRANCH_OPTIONS, p.branch)} veteran` : '',
+      p.deathCause === 'in_service' ? 'Died in the line of duty' : p.deathCause === 'service_connected' ? 'Service-connected death' : '',
+      p.remarriage !== 'no' ? 'Remarried' : '',
+      kids > 0 ? `${kids} ${kids === 1 ? 'child' : 'children'}` : '',
+      p.age ? `Age ${p.age}` : '',
+      labelFor(STATE_OPTIONS, p.state),
+    ].filter(Boolean);
   return [
     labelFor(STATUS_OPTIONS, p.status),
     labelFor(BRANCH_OPTIONS, p.branch),

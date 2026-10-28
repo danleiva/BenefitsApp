@@ -1,6 +1,6 @@
 import { stateByCode } from '../data/states';
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../engine/match';
-import { estimatedCompensation } from '../engine/rules';
+import { estimatedCompensation, estimatedDic } from '../engine/rules';
 import type { MatchedBenefit, Profile } from '../types';
 import { profileFacts } from './summary';
 
@@ -8,12 +8,13 @@ import { profileFacts } from './summary';
 export function PrintReport({ profile, matches }: { profile: Profile; matches: MatchedBenefit[] }) {
   const st = stateByCode(profile.state);
   const comp = estimatedCompensation(profile);
+  const dic = estimatedDic(profile);
   const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="print-report" aria-hidden="true">
       <header>
-        <h1>My Military & Veteran Benefits Report</h1>
+        <h1>{profile.status === 'surviving_spouse' ? 'My Survivor Benefits Report' : 'My Military & Veteran Benefits Report'}</h1>
         <p>Prepared {date}</p>
         <p>
           <strong>Profile:</strong> {profileFacts(profile).join(' · ')}
@@ -21,6 +22,11 @@ export function PrintReport({ profile, matches }: { profile: Profile; matches: M
         {comp !== null && comp > 0 && (
           <p>
             <strong>Estimated VA compensation:</strong> ${comp.toFixed(2)}/month (2026 rate, veteran alone)
+          </p>
+        )}
+        {dic !== null && (
+          <p>
+            <strong>Estimated DIC:</strong> ${dic.toFixed(2)}/month (2026 base rate plus children under 18)
           </p>
         )}
         <p className="print-note">

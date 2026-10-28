@@ -12,6 +12,20 @@ export const isGuardReserve = (p: Profile) => p.status === 'guard_reserve';
 
 export const isServing = (p: Profile) => isActive(p) || isGuardReserve(p);
 
+export const isSurvivor = (p: Profile) => p.status === 'surviving_spouse';
+
+/** Died in the line of duty or from a service-connected condition — the core test for DIC and most survivor programs. */
+export const serviceConnectedDeath = (p: Profile) => p.deathCause === 'in_service' || p.deathCause === 'service_connected';
+
+/** Family programs (CHAMPVA, DEA) also cover survivors of veterans rated permanently and totally disabled at death. */
+export const familyBenefitDeath = (p: Profile) => serviceConnectedDeath(p) || p.deathCause === 'rated_total';
+
+/** The cause of death hasn't been established yet. */
+export const deathUnclear = (p: Profile) => p.deathCause === 'unknown' || p.deathCause === '';
+
+/** Remarriage before 55 ends DIC and CHAMPVA eligibility (it can be restored if that marriage ends). */
+export const keepsSurvivorBenefits = (p: Profile) => p.remarriage !== 'before55';
+
 /** Discharge that clearly meets the "other than dishonorable" bar for most VA benefits. */
 export const goodDischarge = (p: Profile) =>
   p.discharge === 'honorable' || p.discharge === 'general' || isRetiree(p);
@@ -37,7 +51,7 @@ export const isMarried = (p: Profile) => p.marital === 'married';
 
 export const hasKids = (p: Profile) => p.kidsUnder18 > 0 || p.kidsInSchool > 0 || p.disabledChild;
 
-export const hasDependents = (p: Profile) => isMarried(p) || hasKids(p);
+export const hasDependents = (p: Profile) => (isMarried(p) && p.status !== 'surviving_spouse') || hasKids(p);
 
 export const wartime = (p: Profile) =>
   p.eras.some((e) => e === 'post911' || e === 'gulf_war' || e === 'vietnam' || e === 'korea' || e === 'wwii');
@@ -76,7 +90,9 @@ export const withDischargeCaveat = (p: Profile, r: MatchResult): MatchResult => 
     strength: 'possible' as Strength,
     reasons: [
       ...r.reasons,
-      'Your discharge type may require a VA "character of discharge" review — you can still apply.',
+      isSurvivor(p)
+        ? 'The veteran\'s discharge type may require a VA "character of discharge" review — you can still apply.'
+        : 'Your discharge type may require a VA "character of discharge" review — you can still apply.',
     ],
   };
 };
@@ -102,8 +118,17 @@ export const COMPENSATION_2026: Record<number, number> = {
   100: 3938.58,
 };
 
+/** 2026 DIC base rate for a surviving spouse (effective Dec 1, 2025), before add-ons for children or the 8-year provision. */
+export const DIC_BASE_2026 = 1699.36;
+export const DIC_PER_CHILD_2026 = 421.0;
+
+export const estimatedDic = (p: Profile): number | null => {
+  if (!isSurvivor(p) || !serviceConnectedDeath(p) || !keepsSurvivorBenefits(p)) return null;
+  return Math.round((DIC_BASE_2026 + p.kidsUnder18 * DIC_PER_CHILD_2026) * 100) / 100;
+};
+
 export const estimatedCompensation = (p: Profile): number | null => {
-  if (p.rating === null) return null;
+  if (p.rating === null || isSurvivor(p)) return null;
   if (p.tdiu) return COMPENSATION_2026[100];
   return COMPENSATION_2026[p.rating] ?? null;
 };

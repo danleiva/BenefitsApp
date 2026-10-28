@@ -72,7 +72,7 @@ export const states: StateInfo[] = [
     code: 'CA', name: 'California', agency: 'California Department of Veterans Affairs (CalVet)', url: 'https://www.calvet.ca.gov/',
     retirementTax: { status: 'partial', note: 'Starting with tax year 2025, California excludes up to $20,000 of military retirement pay for retirees under income limits. The rest is taxable.' },
     benefits: [
-      property('ca-prop', 'Disabled Veterans’ Exemption reduces assessed value of your home (roughly $175,000, or $260,000+ for low-income households; adjusted yearly).', { total: true }, 'Veteran rated 100% or TDIU; primary residence.'),
+      property('ca-prop', 'Disabled Veterans’ Exemption reduces assessed value of your home (roughly $175,000, or $260,000+ for low-income households; adjusted yearly).', { total: true, survivor: true }, 'Veteran rated 100% or TDIU; primary residence.'),
       edu('ca-edu', 'CalVet College Fee Waiver', 'Waives tuition and fees at California community colleges, CSU, and UC for dependents of service-connected disabled veterans.', { dependents: true, minRating: 0 }, 'Children/spouses of veterans with a service-connected disability (several plans; income limits apply for some).', 'https://www.calvet.ca.gov/VetServices/Pages/College-Fee-Waiver.aspx'),
       other('ca-home', 'CalVet Home Loans', 'housing', 'State home loan program for veterans buying in California, including options for those who may not qualify for a VA loan.', { veteran: true }, 'California veterans; program terms vary.', 'https://www.calvet.ca.gov/calvet-programs/home-loans'),
     ],
@@ -81,7 +81,7 @@ export const states: StateInfo[] = [
     code: 'CO', name: 'Colorado', agency: 'Colorado Division of Veterans Affairs', url: 'https://vets.colorado.gov/',
     retirementTax: { status: 'partial', note: 'Colorado allows a military retirement subtraction (about $15,000 for those under 55) and larger pension subtractions at 55 and 65.' },
     benefits: [
-      property('co-prop', 'Exempts 50% of the first $200,000 of your home’s actual value for veterans rated 100% P&T.', { total: true, pt: true }, '100% P&T veteran who has owned and occupied the home since Jan 1 of the tax year.'),
+      property('co-prop', 'Exempts 50% of the first $200,000 of your home’s actual value for veterans rated 100% P&T.', { total: true, pt: true, survivor: true }, '100% P&T veteran who has owned and occupied the home since Jan 1 of the tax year.'),
     ],
   },
   {
@@ -108,7 +108,7 @@ export const states: StateInfo[] = [
     code: 'FL', name: 'Florida', agency: 'Florida Department of Veterans’ Affairs', url: 'https://www.floridavets.org/',
     retirementTax: { status: 'none', note: 'Florida has no state income tax.' },
     benefits: [
-      property('fl-prop', 'Total homestead exemption for veterans with a service-connected permanent and total disability; $5,000 exemption for veterans rated 10%+.', { minRating: 10 }, 'Full exemption at 100% P&T (or TDIU P&T); $5,000 off assessed value at 10%+.', ['Veterans 65+ with combat-related disabilities can get a percentage discount.']),
+      property('fl-prop', 'Total homestead exemption for veterans with a service-connected permanent and total disability; $5,000 exemption for veterans rated 10%+.', { minRating: 10, survivor: true }, 'Full exemption at 100% P&T (or TDIU P&T); $5,000 off assessed value at 10%+.', ['Veterans 65+ with combat-related disabilities can get a percentage discount.']),
       edu('fl-edu', 'Scholarships for Children & Spouses of Disabled Veterans', 'Florida scholarship covering tuition and fees for dependents of veterans with 100% service-connected P&T disabilities.', { dependents: true, total: true, pt: true }, 'Dependents of a 100% P&T veteran who meets Florida residency rules.'),
       other('fl-hunt', 'Disabled Veteran Hunting & Fishing License', 'recreation', 'Free or discounted Florida hunting and fishing licenses for disabled veterans.', { minRating: 10 }, 'Florida resident veteran with a qualifying rating.', 'https://myfwc.com/license/'),
     ],
@@ -117,7 +117,7 @@ export const states: StateInfo[] = [
     code: 'GA', name: 'Georgia', agency: 'Georgia Department of Veterans Service', url: 'https://veterans.georgia.gov/',
     retirementTax: { status: 'partial', note: 'For tax year 2026, Georgia exempts up to $65,000 of military retirement pay (law sunsets in 2028).' },
     benefits: [
-      property('ga-prop', 'Large homestead exemption (over $100,000 of assessed value, indexed yearly) for veterans rated 100% or TDIU.', { total: true }, '100% or TDIU veteran (also certain loss-of-limb/blindness disabilities).'),
+      property('ga-prop', 'Large homestead exemption (over $100,000 of assessed value, indexed yearly) for veterans rated 100% or TDIU.', { total: true, survivor: true }, '100% or TDIU veteran (also certain loss-of-limb/blindness disabilities).'),
       other('ga-tag', 'Free Disabled Veteran License Plate', 'recreation', 'Free license plate and exemption from the annual ad valorem vehicle tax for qualifying disabled veterans.', { minRating: 100 }, 'Veterans rated 100% or with certain specific disabilities.', 'https://dor.georgia.gov/motor-vehicles'),
     ],
   },
@@ -178,7 +178,7 @@ export const states: StateInfo[] = [
     code: 'LA', name: 'Louisiana', agency: 'Louisiana Department of Veterans Affairs', url: 'https://www.vetaffairs.la.gov/',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt from Louisiana income tax.' },
     benefits: [
-      property('la-prop', 'Additional homestead exemption: $2,500 at 50–69%, $4,500 at 70–99%, and full exemption at 100% (some municipal taxes excepted).', { minRating: 50 }, 'Veteran rated 50%+; primary residence.'),
+      property('la-prop', 'Additional homestead exemption: $2,500 at 50–69%, $4,500 at 70–99%, and full exemption at 100% (some municipal taxes excepted).', { minRating: 50, survivor: true }, 'Veteran rated 50%+; primary residence.'),
       edu('la-edu', 'Louisiana Title 29 Dependent Tuition Exemption', 'Tuition waiver at Louisiana public colleges for children and spouses of veterans rated 90% or higher.', { dependents: true, minRating: 90 }, 'Dependents of a veteran rated 90%+ (or deceased from service) meeting residency rules.'),
     ],
   },
@@ -194,7 +194,7 @@ export const states: StateInfo[] = [
     code: 'MD', name: 'Maryland', agency: 'Maryland Department of Veterans & Military Families', url: 'https://veterans.maryland.gov/',
     retirementTax: { status: 'partial', note: 'Maryland excludes up to $12,500 of military retirement pay ($20,000 at age 55+).' },
     benefits: [
-      property('md-prop', 'Full property tax exemption on the home of veterans rated 100% P&T.', { total: true, pt: true }, '100% P&T veteran; primary residence.'),
+      property('md-prop', 'Full property tax exemption on the home of veterans rated 100% P&T.', { total: true, pt: true, survivor: true }, '100% P&T veteran; primary residence.'),
       edu('md-edu', 'Edward T. Conroy Memorial Scholarship', 'Tuition and fees at Maryland colleges for children of veterans with a 100% service-connected disability.', { dependents: true, total: true }, 'Children/spouses of 100% disabled or deceased veterans.'),
     ],
   },
@@ -211,7 +211,7 @@ export const states: StateInfo[] = [
     code: 'MI', name: 'Michigan', agency: 'Michigan Veterans Affairs Agency', url: 'https://www.michiganveterans.com/',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt from Michigan income tax.' },
     benefits: [
-      property('mi-prop', 'Full property tax exemption on the homestead of veterans rated 100% or TDIU.', { total: true }, '100% or TDIU veteran; primary residence.'),
+      property('mi-prop', 'Full property tax exemption on the homestead of veterans rated 100% or TDIU.', { total: true, survivor: true }, '100% or TDIU veteran; primary residence.'),
       edu('mi-edu', 'Michigan Children of Veterans Tuition Grant', 'Tuition grant for children of veterans who are totally disabled or died from service.', { dependents: true, total: true }, 'Children 16–26 of qualifying veterans.'),
       other('mi-trust', 'Michigan Veterans Trust Fund Emergency Grants', 'financial', 'One-time emergency financial help for veterans facing a temporary hardship.', { veteran: true, wartime: true }, 'Michigan wartime veterans facing an unexpected financial emergency.'),
     ],
@@ -220,7 +220,7 @@ export const states: StateInfo[] = [
     code: 'MN', name: 'Minnesota', agency: 'Minnesota Department of Veterans Affairs', url: 'https://mn.gov/mdva/',
     retirementTax: { status: 'full', note: 'Military retirement pay is fully exempt from Minnesota income tax.' },
     benefits: [
-      property('mn-prop', 'Disabled Veterans’ Market Value Exclusion: $150,000 at 70%+ and $300,000 at 100% P&T.', { minRating: 70 }, 'Veteran rated 70%+; primary residence.'),
+      property('mn-prop', 'Disabled Veterans’ Market Value Exclusion: $150,000 at 70%+ and $300,000 at 100% P&T.', { minRating: 70, survivor: true }, 'Veteran rated 70%+; primary residence.'),
       edu('mn-edu', 'Minnesota GI Bill', 'State education and training grants for veterans, service members, and some dependents.', { education: true }, 'Minnesota veterans and service members meeting service requirements.'),
     ],
   },
@@ -239,13 +239,13 @@ export const states: StateInfo[] = [
   {
     code: 'MT', name: 'Montana', agency: 'Montana Veterans Affairs Division', url: 'https://montanaveterans.mt.gov/',
     retirementTax: { status: 'partial', note: 'Montana exempts 50% of military retirement pay for a limited period (rules depend on residency).' },
-    benefits: [property('mt-prop', 'Disabled Veteran Property Tax Assistance for 100% or TDIU veterans, based on income.', { total: true }, '100%/TDIU veteran (and surviving spouses), income limits apply.')],
+    benefits: [property('mt-prop', 'Disabled Veteran Property Tax Assistance for 100% or TDIU veterans, based on income.', { total: true, survivor: true }, '100%/TDIU veteran (and surviving spouses), income limits apply.')],
   },
   {
     code: 'NE', name: 'Nebraska', agency: 'Nebraska Department of Veterans’ Affairs', url: 'https://veterans.nebraska.gov/',
     retirementTax: { status: 'full', note: 'Military retirement pay is fully exempt from Nebraska income tax.' },
     benefits: [
-      property('ne-prop', 'Homestead exemption for veterans rated 100% or TDIU (no income limit for some categories).', { total: true }, '100% or TDIU veteran; file with your county assessor.'),
+      property('ne-prop', 'Homestead exemption for veterans rated 100% or TDIU (no income limit for some categories).', { total: true, survivor: true }, '100% or TDIU veteran; file with your county assessor.'),
       edu('ne-edu', 'Nebraska Tuition Waiver for Dependents', 'Tuition waiver at Nebraska public colleges for dependents of veterans who are 100% disabled or died from service.', { dependents: true, total: true }, 'Spouses and children of qualifying veterans.'),
     ],
   },
@@ -260,14 +260,14 @@ export const states: StateInfo[] = [
     code: 'NH', name: 'New Hampshire', agency: 'New Hampshire Division of Community Based Military Programs', url: 'https://www.nh.gov/nhveterans/',
     retirementTax: { status: 'none', note: 'New Hampshire does not tax wages or retirement pay.' },
     benefits: [
-      property('nh-prop', 'Service-connected Total Disability Tax Credit ($700–$5,000, set by your town) plus the standard Veterans’ Tax Credit.', { veteran: true }, 'Veterans with qualifying service; larger credit at 100% P&T.'),
+      property('nh-prop', 'Service-connected Total Disability Tax Credit ($700–$5,000, set by your town) plus the standard Veterans’ Tax Credit.', { veteran: true, survivor: true }, 'Veterans with qualifying service; larger credit at 100% P&T.'),
     ],
   },
   {
     code: 'NJ', name: 'New Jersey', agency: 'New Jersey Department of Military & Veterans Affairs', url: 'https://www.nj.gov/military/',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt from New Jersey income tax.' },
     benefits: [
-      property('nj-prop', 'Full property tax exemption for veterans rated 100% P&T; all honorably discharged veterans get a $250 annual deduction.', { veteran: true }, 'Full exemption at 100% P&T; $250 deduction for other eligible veterans.'),
+      property('nj-prop', 'Full property tax exemption for veterans rated 100% P&T; all honorably discharged veterans get a $250 annual deduction.', { veteran: true, survivor: true }, 'Full exemption at 100% P&T; $250 deduction for other eligible veterans.'),
     ],
   },
   {
@@ -289,7 +289,7 @@ export const states: StateInfo[] = [
     code: 'NC', name: 'North Carolina', agency: 'North Carolina Department of Military & Veterans Affairs', url: 'https://www.milvets.nc.gov/',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt for retirees with 20+ years of service or medical retirement; some others may qualify under the Bailey settlement.' },
     benefits: [
-      property('nc-prop', 'Disabled Veteran Homestead Exclusion removes the first $45,000 of appraised value for veterans rated 100% or TDIU.', { total: true }, '100% or TDIU veteran; primary residence.'),
+      property('nc-prop', 'Disabled Veteran Homestead Exclusion removes the first $45,000 of appraised value for veterans rated 100% or TDIU.', { total: true, survivor: true }, '100% or TDIU veteran; primary residence.'),
       edu('nc-edu', 'NC Scholarships for Children of Wartime Veterans', 'Tuition and fees (plus board in some classes) at NC public colleges for children of qualifying disabled or deceased wartime veterans.', { dependents: true, minRating: 20, wartime: true }, 'Children of wartime veterans who are disabled, deceased, POW/MIA, or awarded certain decorations.'),
     ],
   },
@@ -311,7 +311,7 @@ export const states: StateInfo[] = [
     code: 'OK', name: 'Oklahoma', agency: 'Oklahoma Department of Veterans Affairs', url: 'https://oklahoma.gov/veterans.html',
     retirementTax: { status: 'full', note: 'Oklahoma exempts military retirement pay (confirm current percentage with the Oklahoma Tax Commission).' },
     benefits: [
-      property('ok-prop', 'Full property tax exemption on the homestead of veterans rated 100% P&T.', { total: true, pt: true }, '100% P&T veteran; primary residence.'),
+      property('ok-prop', 'Full property tax exemption on the homestead of veterans rated 100% P&T.', { total: true, pt: true, survivor: true }, '100% P&T veteran; primary residence.'),
       other('ok-sales', 'Sales Tax Exemption for 100% Disabled Veterans', 'financial', 'Oklahoma exempts eligible 100% P&T veterans (and surviving spouses) from state sales tax on purchases up to an annual cap.', { total: true, pt: true }, '100% P&T veteran; apply through the Oklahoma Tax Commission.'),
     ],
   },
@@ -327,7 +327,7 @@ export const states: StateInfo[] = [
     code: 'PA', name: 'Pennsylvania', agency: 'Pennsylvania Department of Military & Veterans Affairs', url: 'https://www.pa.gov/agencies/dmva',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt from Pennsylvania income tax.' },
     benefits: [
-      property('pa-prop', 'Disabled Veterans Real Estate Tax Exemption for veterans rated 100% or TDIU with demonstrated financial need.', { total: true }, '100%/TDIU veteran with wartime service and financial need.'),
+      property('pa-prop', 'Disabled Veterans Real Estate Tax Exemption for veterans rated 100% or TDIU with demonstrated financial need.', { total: true, survivor: true }, '100%/TDIU veteran with wartime service and financial need.'),
       other('pa-vta', 'Veterans’ Temporary Assistance (VTA)', 'financial', 'Short-term financial help for food, shelter, fuel, and clothing for veterans in need.', { veteran: true, lowIncome: true }, 'Pennsylvania veterans and dependents facing financial hardship.'),
     ],
   },
@@ -340,7 +340,7 @@ export const states: StateInfo[] = [
     code: 'SC', name: 'South Carolina', agency: 'South Carolina Department of Veterans’ Affairs', url: 'https://scdva.sc.gov/',
     retirementTax: { status: 'full', note: 'Military retirement pay is fully exempt from South Carolina income tax.' },
     benefits: [
-      property('sc-prop', 'Full property tax exemption on your home and up to two vehicles for veterans rated 100% P&T.', { total: true, pt: true }, '100% P&T veteran.'),
+      property('sc-prop', 'Full property tax exemption on your home and up to two vehicles for veterans rated 100% P&T.', { total: true, pt: true, survivor: true }, '100% P&T veteran.'),
       edu('sc-edu', 'South Carolina Free Tuition for Children of Certain Veterans', 'Free tuition at SC public colleges for children of veterans who are 100% disabled, POW, Purple Heart recipients, or killed in action.', { dependents: true }, 'Children of qualifying veterans meeting SC residency rules.'),
     ],
   },
@@ -364,7 +364,7 @@ export const states: StateInfo[] = [
     code: 'TX', name: 'Texas', agency: 'Texas Veterans Commission', url: 'https://www.tvc.texas.gov/',
     retirementTax: { status: 'none', note: 'Texas has no state income tax.' },
     benefits: [
-      property('tx-prop', 'Full homestead exemption for veterans rated 100% or TDIU; partial exemptions ($5,000–$12,000) for 10–99% ratings.', { minRating: 10 }, 'Veteran rated 10%+ (full exemption at 100%/TDIU).'),
+      property('tx-prop', 'Full homestead exemption for veterans rated 100% or TDIU; partial exemptions ($5,000–$12,000) for 10–99% ratings.', { minRating: 10, survivor: true }, 'Veteran rated 10%+ (full exemption at 100%/TDIU).'),
       edu('tx-edu', 'Hazlewood Act', 'Up to 150 credit hours of tuition exemption at Texas public colleges; unused hours can be transferred to a child (Legacy Program).', { veteran: true }, 'Texas resident veteran who entered service in Texas (or was a Texas resident), with 181+ days of active duty and an honorable discharge.', 'https://www.tvc.texas.gov/education/hazlewood/'),
       other('tx-vlb', 'Texas Veterans Land Board Loans', 'housing', 'Low-interest state loans for land, homes, and home improvements for Texas veterans.', { veteran: true }, 'Texas veterans with qualifying service.', 'https://www.vlb.texas.gov/'),
     ],
@@ -383,7 +383,7 @@ export const states: StateInfo[] = [
     code: 'VA', name: 'Virginia', agency: 'Virginia Department of Veterans Services', url: 'https://www.dvs.virginia.gov/',
     retirementTax: { status: 'partial', note: 'Virginia allows a subtraction of up to $40,000 of military retirement pay (2025 and later).' },
     benefits: [
-      property('va-prop', 'Full real estate tax exemption on the home of veterans rated 100% P&T (or TDIU in some cases); one vehicle may also be exempt.', { total: true }, '100% P&T veteran; primary residence.'),
+      property('va-prop', 'Full real estate tax exemption on the home of veterans rated 100% P&T (or TDIU in some cases); one vehicle may also be exempt.', { total: true, survivor: true }, '100% P&T veteran; primary residence.'),
       edu('va-edu', 'Virginia Military Survivors & Dependents Education Program (VMSDEP)', 'Waives tuition and fees at Virginia public colleges for dependents of veterans rated 90%+ (or killed/MIA).', { dependents: true, minRating: 90 }, 'Spouses and children of qualifying veterans meeting residency rules.'),
     ],
   },
@@ -404,7 +404,7 @@ export const states: StateInfo[] = [
     code: 'WI', name: 'Wisconsin', agency: 'Wisconsin Department of Veterans Affairs', url: 'https://dva.wi.gov/',
     retirementTax: { status: 'full', note: 'Military retirement pay is exempt from Wisconsin income tax.' },
     benefits: [
-      other('wi-prop', 'Veterans & Surviving Spouses Property Tax Credit', 'financial', 'Refundable state income tax credit equal to the property taxes on your home for veterans rated 100% or TDIU.', { total: true, homeowner: true }, '100% or TDIU veteran who is a Wisconsin resident.'),
+      other('wi-prop', 'Veterans & Surviving Spouses Property Tax Credit', 'financial', 'Refundable state income tax credit equal to the property taxes on your home for veterans rated 100% or TDIU.', { total: true, homeowner: true, survivor: true }, '100% or TDIU veteran who is a Wisconsin resident.'),
       edu('wi-edu', 'Wisconsin GI Bill', 'Full tuition and fee remission at UW and Wisconsin technical colleges for eligible veterans, plus dependents of veterans rated 30%+.', { education: true }, 'Wisconsin veterans with qualifying service and residency; dependents of veterans rated 30%+.'),
     ],
   },

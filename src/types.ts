@@ -3,7 +3,8 @@ export type ServiceStatus =
   | 'guard_reserve'
   | 'veteran'
   | 'retired'
-  | 'medically_retired';
+  | 'medically_retired'
+  | 'surviving_spouse';
 
 export type Branch =
   | 'army'
@@ -42,6 +43,12 @@ export type Exposure =
   | 'radiation'
   | 'other';
 
+/** How the service member or veteran died (surviving spouses only). */
+export type DeathCause = 'in_service' | 'service_connected' | 'rated_total' | 'other' | 'unknown';
+
+/** Remarriage affects DIC, CHAMPVA, and home loan eligibility for surviving spouses. */
+export type Remarriage = 'no' | 'after55' | 'before55';
+
 export type Marital = 'single' | 'married' | 'divorced' | 'separated' | 'widowed';
 
 export type Education =
@@ -78,6 +85,10 @@ export interface Profile {
   unratedConditions: boolean;
   severeDisability: boolean;
   needsDailyCare: boolean;
+  // Surviving spouse (service fields above describe the deceased veteran)
+  deathCause: DeathCause | '';
+  remarriage: Remarriage;
+  veteranWasRetiree: boolean;
   // Family
   marital: Marital | '';
   kidsUnder18: number;
