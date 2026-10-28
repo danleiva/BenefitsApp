@@ -13,6 +13,7 @@
   --primary: #1d4f86;
   --primary-hover: #163e6a;
   --primary-soft: #e8f0fa;
+  --on-primary: #ffffff;
   --green: #1e7a46;
   --green-soft: #e4f4ea;
   --amber: #8a5a00;
@@ -23,7 +24,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0d1520;
     --surface: #15202e;
     --surface-2: #1a2738;
@@ -33,6 +34,7 @@
     --primary: #6aa5e8;
     --primary-hover: #8dbbf0;
     --primary-soft: #1d3150;
+    --on-primary: #0d1520;
     --gold-soft: #3a3020;
     --green: #6fd29b;
     --green-soft: #173527;
@@ -41,6 +43,26 @@
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d1520;
+  --surface: #15202e;
+  --surface-2: #1a2738;
+  --text: #e8edf3;
+  --muted: #a3b0c0;
+  --border: #2a3a4f;
+  --primary: #6aa5e8;
+  --primary-hover: #8dbbf0;
+  --primary-soft: #1d3150;
+  --on-primary: #0d1520;
+  --gold-soft: #3a3020;
+  --green: #6fd29b;
+  --green-soft: #173527;
+  --amber: #f2c46d;
+  --amber-soft: #3a2f17;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+  color-scheme: dark;
 }
 
 * {
@@ -181,12 +203,7 @@ main.container {
 }
 .btn-primary {
   background: var(--primary);
-  color: #fff;
-}
-@media (prefers-color-scheme: dark) {
-  .btn-primary {
-    color: #0d1520;
-  }
+  color: var(--on-primary);
 }
 .btn-primary:hover {
   background: var(--primary-hover);

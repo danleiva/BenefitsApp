@@ -16,6 +16,9 @@ interface Props {
 
 type LevelFilter = 'all' | 'federal' | 'state';
 
+// Some hosts (e.g., sandboxed preview frames) block the print dialog; builds for them set this flag.
+const canPrint = import.meta.env.VITE_DISABLE_PRINT !== 'true';
+
 const money = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
 export function Results({ profile, matches, onEdit, onRestart }: Props) {
@@ -64,9 +67,11 @@ export function Results({ profile, matches, onEdit, onRestart }: Props) {
             ))}
           </ul>
           <div className="hero-actions">
-            <button type="button" className="btn btn-primary" onClick={() => window.print()}>
-              Print / Save as PDF
-            </button>
+            {canPrint && (
+              <button type="button" className="btn btn-primary" onClick={() => window.print()}>
+                Print / Save as PDF
+              </button>
+            )}
             <button type="button" className="btn btn-ghost" onClick={onEdit}>
               Edit my answers
             </button>
